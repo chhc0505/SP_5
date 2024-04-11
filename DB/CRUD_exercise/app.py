@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 # MySQL 연결 설정
 db = mysql.connector.connect(
-    host="localhost",
+    host="172.19.0.21",
     user="root",
     password="wlstjr1030",
     database="flask_crud_app"

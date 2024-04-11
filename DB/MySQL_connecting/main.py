@@ -4,7 +4,7 @@ from user_defs import *
 
 def connect_to_database(database):
     connection = mysql.connector.connect(
-        host="localhost",
+        host="test-mysql",
         user="root",
         password="wlstjr1030",
         database=database
