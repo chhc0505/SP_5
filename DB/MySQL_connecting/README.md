@@ -1,3 +1,10 @@
+## library
+Mysql 8.3.0
+
+mysql-connector-python : 8.3.0 (mysql-connector가 아닌 -python까지) (pip install mysql-connector-python)
+
+docker쓰려다 실패했습니다 ㅠ
+
 ## main.py
 reset, select, insert, delete, update 함수 작동확인
 
