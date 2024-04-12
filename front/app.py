@@ -111,38 +111,70 @@ def logout():
 
 
 
-@app.route('/game')
+@app.route('/game', methods=["GET", "POST"])
 def game():
     if 'user_id' not in session:
         flash("로그인이 필요합니다.")
         return redirect(url_for('login'))
     else:
-        return render_template("game.html")
-    
-
-
-
-# 스코어 업데이트에 따른 랭킹 등록 테스트페이지입니다.
-# 최종적으로는 삭제되는 페이지입니다.
-@app.route('/rankingtest', methods=["GET", "POST"])
-def rankingtest():
-    if request.method == 'POST':
-        if 'user_id' in session and 'score' in request.form:
+        if request.method == 'POST':
             user_id = session['user_id']
-            new_score = int(request.form['score']) 
+            new_score = int(request.form['score'])  # 폼에서 받은 점수를 정수로 변환
+
+            # 데이터베이스에 접속하여 현재 사용자의 최고 점수를 조회
             cur = ranking_db_connection.cursor()
             cur.execute("SELECT score FROM ranking WHERE user_id = %s ORDER BY score DESC LIMIT 1", (user_id,))
             result = cur.fetchone()
             
-            if result is None or new_score > result['score']:
+            
+            # 사용자의 현재 최고 점수가 존재하지 않거나, 새로운 점수가 더 높은 경우에만 데이터 업데이트
+            if result is None:
+                cur.execute("INSERT INTO ranking(user_id, score) VALUES(%s, %s)", (user_id, new_score))
+                ranking_db_connection.commit()
+                cur.close()
+                return redirect(url_for('game')) 
+            elif new_score > result['score']:
                 cur.execute("UPDATE ranking SET score = %s WHERE user_id = %s", (new_score, user_id))
                 ranking_db_connection.commit()
                 cur.close()
+                return redirect(url_for('game'))  # 데이터 저장 후 페이지 리디렉션
+            else:
+                cur.close()
+                return render_template('game.html')
+        return render_template("game.html")
+    
+
+
+@app.route('/rankingtest', methods=["GET", "POST"])
+def rankingtest():
+    if request.method == 'POST':
+        # 세션에 user_id가 존재하고 폼 데이터에서 score를 받는 경우
+        if 'user_id' in session and 'score' in request.form:
+            user_id = session['user_id']
+            new_score = int(request.form['score'])  # 폼에서 받은 점수를 정수로 변환
+
+            # 데이터베이스에 접속하여 현재 사용자의 최고 점수를 조회
+            cur = ranking_db_connection.cursor()
+            cur.execute("SELECT score FROM ranking WHERE user_id = %s ORDER BY score DESC LIMIT 1", (user_id,))
+            result = cur.fetchone()
+            
+            
+            # 사용자의 현재 최고 점수가 존재하지 않거나, 새로운 점수가 더 높은 경우에만 데이터 업데이트
+            if result is None:
+                cur.execute("INSERT INTO ranking(user_id, score) VALUES(%s, %s)", (user_id, new_score))
+                ranking_db_connection.commit()
+                cur.close()
                 return redirect(url_for('rankingtest')) 
+            elif new_score > result['score']:
+                cur.execute("UPDATE ranking SET score = %s WHERE user_id = %s", (new_score, user_id))
+                ranking_db_connection.commit()
+                cur.close()
+                return redirect(url_for('rankingtest'))  # 데이터 저장 후 페이지 리디렉션
             else:
                 cur.close()
                 return render_template('index.html')
 
+    # GET 요청 또는 다른 조건에서는 폼을 보여주는 페이지를 렌더링
     return render_template("rankingtest.html")
 
 

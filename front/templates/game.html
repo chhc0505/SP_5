@@ -3,6 +3,232 @@
 <h2>gameplay</h2>
     {% if session['user_name'] %}
         <p>안녕하세요, {{ session['user_name'] }}님!</p>
-        <p>해당 페이지에 게임 삽입</p>
+        
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden; /* 전체 스크롤 숨김 */
+            }
+            canvas {
+                border: 1px solid black;
+                display: block;
+                margin: 0 auto;
+            }
+            #score, #ammo {
+                position: absolute;
+                text-align: center;
+                width: 100%;
+            }
+            #score {
+                bottom: 10px;
+            }
+            #ammo {
+                top: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <p id="score"></p>
+        <p id="ammo"></p>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script>
+            // 캔버스와 그리기 컨텍스트 가져오기
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+        
+            // 게임 요소 초기화
+            let score = 0; // 점수
+            let playerSize = 20; // 플레이어 크기
+            let playerX = canvas.width / 2; // 플레이어 초기 x 위치
+            let playerY = canvas.height - 30; // 플레이어 초기 y 위치
+            let enemySize = 20; // 적 크기
+            let enemies = []; // 적 배열
+            let bulletSize = 5; // 총알 크기
+            let bullets = []; // 총알 배열
+            let isGameOver = false; // 게임 오버 여부
+            let keys = {}; // 키 입력 추적을 위한 객체
+            let moveSpeed = 2; // 움직임 속도 조절
+            let ammo = 10; // 공격 가능 횟수
+        
+            // 플레이어 그리기 함수
+            function drawPlayer() {
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(playerX - (playerSize / 2), playerY - (playerSize / 2), playerSize, playerSize);
+            }
+        
+            // 적 그리기 함수
+            function drawEnemies() {
+                ctx.fillStyle = 'red';
+                for (let enemy of enemies) {
+                    ctx.fillRect(enemy.x, enemy.y, enemySize, enemySize);
+                }
+            }
+        
+            // 공격 그리기 함수
+            function drawBullets() {
+                ctx.fillStyle = 'green';
+                for (let bullet of bullets) {
+                    ctx.fillRect(bullet.x, bullet.y, bulletSize, bulletSize);
+                }
+            }
+        
+            // 적 생성 함수
+            function generateEnemy() {
+                if (Math.random() < 0.035) { // 일정 확률로 적 생성
+                    let x = Math.random() * canvas.width;
+                    let y = -enemySize;
+                    enemies.push({ x: x, y: y });
+                }
+            }
+        
+            // 적 이동 함수
+            function moveEnemies() {
+                for (let enemy of enemies) {
+                    enemy.y += moveSpeed;
+                    if (enemy.y > canvas.height) { // 적이 화면을 벗어날 경우 다시 위로 이동
+                        enemy.y = -enemySize;
+                        enemy.x = Math.random() * canvas.width;
+                    }
+                }
+            }
+        
+            // 공격 이동 함수
+            function moveBullets() {
+                for (let bullet of bullets) {
+                    bullet.y -= moveSpeed * 2; // 공격 속도를 적의 속도보다 빠르게
+                }
+            }
+        
+            // 충돌 검사 함수
+            function checkCollision() {
+                for (let i = 0; i < bullets.length; i++) {
+                    for (let j = 0; j < enemies.length; j++) {
+                        if (bullets[i].x < enemies[j].x + enemySize &&
+                            bullets[i].x + bulletSize > enemies[j].x &&
+                            bullets[i].y < enemies[j].y + enemySize &&
+                            bullets[i].y + bulletSize > enemies[j].y) {
+                            bullets.splice(i, 1); // 총알 삭제
+                            enemies.splice(j, 1); // 적 삭제
+                            score += 100; // 점수 상승
+                            return;
+                        }
+                    }
+                }
+                for (let enemy of enemies) {
+                    if (playerX < enemy.x + enemySize &&
+                        playerX + playerSize > enemy.x &&
+                        playerY < enemy.y + enemySize &&
+                        playerY + playerSize > enemy.y) {
+                        isGameOver = true; // 플레이어와 적이 충돌하면 게임 종료
+                        return;
+                    }
+                }
+            }
+        
+            // 점수 업데이트 함수
+            function updateScore() {
+                $('#score').text('점수: ' + score);
+            }
+        
+            // 남은 공격 가능 횟수 업데이트 함수
+            function updateAmmo() {
+                $('#ammo').text('총알 갯수 : ' + ammo);
+            }
+        
+            // 10초마다 공격 가능 횟수 리셋
+            setInterval(function() {
+                ammo = 10;
+                updateAmmo();
+            }, 10000);
+        
+            // 게임 루프 함수
+            function gameLoop() {
+                if (!isGameOver) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawPlayer();
+                    generateEnemy();
+                    moveEnemies();
+                    drawEnemies();
+                    moveBullets();
+                    drawBullets();
+                    checkCollision();
+                    updateScore();
+                    updateAmmo();
+                    requestAnimationFrame(gameLoop);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'black';
+                    ctx.font = '30px Arial';
+                    ctx.fillText('게임 오버', canvas.width / 2 - 100, canvas.height / 2);
+                    ctx.fillText('점수: ' + score, canvas.width / 2 - 70, canvas.height / 2 + 40);
+                    $.post('/game', {score: score}, function(response) {
+                        console.log(response);  // 성공 응답 로그
+                    });
+                    
+                }
+            }
+            gameLoop();
+        
+            // 키보드 입력 처리 함수
+            $(document).keydown(function(e) {
+                keys[e.key] = true;
+            });
+        
+            $(document).keyup(function(e) {
+                delete keys[e.key];
+            });
+        
+            // 연속적인 이동 처리 함수
+            function handleContinuousMove() {
+                if ('ArrowLeft' in keys && playerX > playerSize / 2) {
+                    playerX -= moveSpeed;
+                } 
+                if ('ArrowRight' in keys && playerX < canvas.width - (playerSize / 2)) {
+                    playerX += moveSpeed;
+                } 
+                if ('ArrowUp' in keys && playerY > playerSize / 2) {
+                    playerY -= moveSpeed;
+                } 
+                if ('ArrowDown' in keys && playerY < canvas.height - (playerSize / 2)) {
+                    playerY += moveSpeed;
+                } 
+            }
+        
+            // 게임 재시작 함수
+            function resetGame() {
+                score = 0;
+                playerX = canvas.width / 2;
+                playerY = canvas.height - 30;
+                enemies = [];
+                bullets = [];
+                isGameOver = false;
+                ammo = 10; // 남은 공격 가능 횟수 초기화
+                gameLoop();
+            }
+        
+            // 스페이스 바를 누를 때 공격 발사 함수
+            $(document).keydown(function(e) {
+                if (e.key === ' ' && !isGameOver && ammo > 0) {
+                    bullets.push({ x: playerX + 0, y: playerY - bulletSize });
+                    ammo--; // 공격 가능 횟수 감소
+                    updateAmmo(); // 남은 공격 가능 횟수 업데이트
+                } else if (e.key === 'r') {
+                    resetGame();
+                }
+            });
+        
+            // 연속적인 이동 처리 호출
+            setInterval(handleContinuousMove, 10);
+        
+            // Escape 키를 누를 때 게임 종료 함수
+            $(document).keydown(function(e) {
+                if (e.key === 'Escape') {
+                    isGameOver = true;
+                }
+            });
+        </script>
+        </body>
     {% endif %}
 {% endblock %}
