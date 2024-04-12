@@ -1,0 +1,15 @@
+{% extends "base.html"  %}
+{% block content %}
+<h2>rankingtest</h2>
+    {% if session['user_name'] %}
+        <p>안녕하세요, {{ session['user_name'] }}님!</p>
+
+        <form action="/rankingtest" method="post">
+            <div class="mb-3">
+                <label for="score" class="form-label">점수 입력</label>
+                <input type="number" class="form-control" id="score" name="score" required>
+            </div>
+            <button type="submit" class="btn btn-primary">제출</button>
+        </form>
+    {% endif %}
+{% endblock %}

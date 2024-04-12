@@ -1,0 +1,8 @@
+{% extends "base.html"  %}
+{% block content %}
+<h2>gameplay</h2>
+    {% if session['user_name'] %}
+        <p>안녕하세요, {{ session['user_name'] }}님!</p>
+        <p>해당 페이지에 게임 삽입</p>
+    {% endif %}
+{% endblock %}
