@@ -6,15 +6,15 @@ app.secret_key = 'secret_key'
 
 # MySQL 연결 설정
 # user_list 데이터베이스 설정
-app.config['MYSQL_USER_HOST'] = 'localhost'
+app.config['MYSQL_USER_HOST'] = 'test-mysql'
 app.config['MYSQL_USER_USER'] = 'root'
-app.config['MYSQL_USER_PASSWORD'] = 'root'
+app.config['MYSQL_USER_PASSWORD'] = 'wlstjr1030'
 app.config['MYSQL_USER_DB'] = 'user_db'
 
 # ranking_list 데이터베이스 설정
-app.config['MYSQL_RANKING_HOST'] = 'localhost'
+app.config['MYSQL_RANKING_HOST'] = 'test-mysql'
 app.config['MYSQL_RANKING_USER'] = 'root'
-app.config['MYSQL_RANKING_PASSWORD'] = 'root'
+app.config['MYSQL_RANKING_PASSWORD'] = 'wlstjr1030'
 app.config['MYSQL_RANKING_DB'] = 'ranking_db'
 
 # MySQL 연결을 위한 함수 정의
@@ -180,6 +180,6 @@ def rankingtest():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
 
 
