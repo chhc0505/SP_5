@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, flash, redirect, request, session
 import pymysql
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -177,7 +178,19 @@ def rankingtest():
     # GET 요청 또는 다른 조건에서는 폼을 보여주는 페이지를 렌더링
     return render_template("rankingtest.html")
 
+# 주기적으로 DB 커넥션 체크 및 유지
+def check_db_connections():
+    try:
+        user_db_connection.ping(reconnect=True)
+        ranking_db_connection.ping(reconnect=True)
+        print("DB connections are active.")
+    except Exception as e:
+        print(f"Error in DB connection check: {e}")
 
+# 스케줄러 설정 (5분마다 실행)
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_db_connections, 'interval', minutes=5)
+scheduler.start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
