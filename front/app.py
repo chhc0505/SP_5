@@ -70,6 +70,35 @@ def register():
     
     return render_template('register.html')
 
+# 회원 탈퇴 API
+@app.route('/unregister', methods=['POST', 'GET'])
+def unregister():
+    if request.method == 'POST':
+        user_id = session.get('user_id')  # session에서 user_id 가져오기
+
+        if not user_id:
+            return "세션이 만료되었습니다."
+
+        cur = user_db_connection.cursor()
+
+        # 입력된 사용자 ID로 사용자를 삭제하는 SQL 실행
+        cur.execute("DELETE FROM user WHERE user_id = %s", (user_id, ))
+        user_db_connection.commit()
+
+        # 삭제된 행이 있는지 확인하여 응답 생성
+        if cur.rowcount > 0:
+            cur.close()
+            session.pop('user_id', None)  # 로그아웃 시 세션에서 사용자 아이디 제거
+            session.pop('user_name', None)
+            return redirect(url_for('index'))
+        else:
+            cur.close()
+            return render_template('unregister.html', message="회원 탈퇴 과정에서 오류가 발생했습니다.")
+
+    elif request.method == 'GET':
+        # GET 요청에 대한 처리
+        return render_template('unregister.html')
+
 
 @app.route('/login', methods=["GET", "POST"])
 def login():

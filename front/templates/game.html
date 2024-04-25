@@ -2,7 +2,12 @@
 {% block content %}
 <h2>gameplay</h2>
     {% if session['user_name'] %}
-        <p>안녕하세요, {{ session['user_name'] }}님!</p>
+        <p>안녕하세요, {{ session['user_name'] }}님!<br>
+            게임 방법<br>
+            공격: 스페이스바<br>
+            회피: 좌우 방향키<br>
+            다시시작: R
+        </p>
         
         <style>
             body {

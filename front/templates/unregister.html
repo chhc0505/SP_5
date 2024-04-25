@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h2>회원 탈퇴</h2>
+    <form action="/unregister" method="post">
+        <div class="mb-3">
+            <label for="user_id" class="form-label">정말로 탈퇴 하시겠습니까?</label>
+        </div>
+        <input type="submit" class="btn btn-danger" value="예">
+    </form>
+</div>
+
+{% endblock %}
